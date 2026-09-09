@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Shi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #14161A;
+    --surface: #1E2126;
+    --surface-2: #262A31;
+    --border: #33383F;
+    --text: #EDEEF0;
+    --text-muted: #8B9099;
+    --accent: #E8B84B;
+    --accent-dim: #4A3E22;
+    --teal: #4FA8A0;
+    --danger: #D9695A;
+    --radius: 10px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3, .brand, .price, .cart-total {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  a { color: var(--accent); }
+
+  /* ---------- Header ---------- */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: rgba(20, 22, 26, 0.92);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .brand {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .brand span { color: var(--accent); }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .icon-btn {
+    position: relative;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .icon-btn:hover { border-color: var(--accent); }
+
+  .cart-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background: var(--accent);
+    color: #14161A;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+  }
+
+  /* ---------- Intro strip ---------- */
+  .intro {
+    padding: 22px 20px 6px;
+    max-width: 720px;
+  }
+
+  .intro p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 4px 0 0;
+  }
+
+  /* ---------- Product grid ---------- */
+  main {
+    padding: 18px 20px 100px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-img {
+    aspect-ratio: 1 / 1;
+    background: var(--surface-2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+    padding: 10px;
+  }
+
+  .card-body {
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .card-name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .stars {
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 1px;
+  }
+
+  .stars .empty { color: var(--border); }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+  }
+
+  .price {
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  .add-btn {
+    background: var(--accent);
+    color: #14161A;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  .add-btn:active { transform: scale(0.97); }
+
+  .add-btn:disabled {
+    background: var(--border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  .stock-tag {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .stock-tag.low { color: var(--danger); }
+
+  /* ---------- Cart drawer ---------- */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+    z-index: 30;
+  }
+
+  .overlay.open { opacity: 1; pointer-events: auto; }
+
+  .drawer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: min(380px, 92vw);
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 31;
+    transform: translateX(100%);
+    transition: transform 0.25s ease;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .drawer.open { transform: translateX(0); }
+
+  .drawer-header {
+    padding: 18px 18px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .drawer-header h2 { margin: 0; font-size: 17px; }
+
+  .close-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  .drawer-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px 18px;
+  }
+
+  .empty-state {
+    color: var(--text-muted);
+    font-size: 13px;
+    padding: 30px 0;
+    text-align: center;
+  }
+
+  .line-item {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+
+  .line-item .thumb {
+    width: 44px;
+    height: 44px;
+    background: var(--surface-2);
+    border-radius: 6px;
+    flex-shrink: 0;
+  }
+
+  .line-item .info { flex: 1; min-width: 0; }
+  .line-item .info .name { font-size: 13px; font-weight: 500; }
+  .line-item .info .unit { font-size: 12px; color: var(--text-muted); }
+
+  .qty-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .qty-control button {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+
+  .drawer-footer {
+    border-top: 1px solid var(--border);
+    padding: 16px 18px 20px;
+  }
+
+  .cart-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .checkout-btn {
+    width: 100%;
+    background: var(--accent);
+    color: #14161A;
+    border: none;
+    border-radius: var(--radius);
+    padding: 13px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .checkout-btn:disabled {
+    background: var(--border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  /* ---------- Checkout form ---------- */
+  .form-view { padding: 4px 0; }
+
+  .field { margin-bottom: 14px; }
+
+  .field label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+
+  .field input, .field textarea {
+    width: 100%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+
+  .field input:focus, .field textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .back-link {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    cursor: pointer;
+    padding: 0 0 14px;
+  }
+
+  .order-success {
+    text-align: center;
+    padding: 30px 10px;
+  }
+
+  .order-success .check {
+    width: 48px;
+    height: 48px;
+    border-radius: 999px;
+    background: var(--accent-dim);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 22px;
+  }
+
+  .order-success h3 { margin: 0 0 6px; }
+  .order-success p { color: var(--text-muted); font-size: 13px; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 999px;
+    font-size: 13px;
+    opacity: 0;
+    transition: all 0.25s ease;
+    pointer-events: none;
+    z-index: 40;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .drawer, .overlay, .toast { transition: none; }
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Random <span>Shi</span></div>
+  <div class="header-actions">
+    <button class="icon-btn" id="cartBtn">
+      Cart
+      <span class="cart-count" id="cartCount" style="display:none;">0</span>
+    </button>
+  </div>
+</header>
+
+<div class="intro">
+  <h1 style="font-size:19px; margin:0;">Whatever's worth having, in small batches</h1>
+  <p>New stock added often, one item at a time. Message us on WhatsApp to arrange pickup after ordering.</p>
+</div>
+
+<main>
+  <div class="grid" id="productGrid">
+    <!-- Product cards render here via JS -->
+  </div>
+</main>
+
+<div class="overlay" id="overlay"></div>
+
+<aside class="drawer" id="drawer" aria-label="Shopping cart">
+
+  <div id="cartView">
+    <div class="drawer-header">
+      <h2>Your cart</h2>
+      <button class="close-btn" id="closeDrawer" aria-label="Close cart">&times;</button>
+    </div>
+    <div class="drawer-items" id="cartItems">
+      <div class="empty-state">Your cart is empty. Add something from the shop.</div>
+    </div>
+    <div class="drawer-footer">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="cartTotal">$0.00</span>
+      </div>
+      <button class="checkout-btn" id="checkoutBtn" disabled>Place order</button>
+    </div>
+  </div>
+
+  <div id="checkoutView" style="display:none; flex:1; display:flex; flex-direction:column;">
+    <div class="drawer-header">
+      <h2>Checkout</h2>
+      <button class="close-btn" id="closeCheckout" aria-label="Close">&times;</button>
+    </div>
+    <div class="drawer-items">
+      <button class="back-link" id="backToCart">&larr; Back to cart</button>
+      <div class="form-view" id="formView">
+        <div class="field">
+          <label for="custName">Your name</label>
+          <input type="text" id="custName" placeholder="e.g. Tinashe M.">
+        </div>
+        <div class="field">
+          <label for="custPhone">WhatsApp number</label>
+          <input type="tel" id="custPhone" placeholder="e.g. 077 123 4567">
+        </div>
+        <div class="field">
+          <label for="custNote">Pickup note (optional)</label>
+          <textarea id="custNote" rows="3" placeholder="Preferred pickup time or location"></textarea>
+        </div>
+      </div>
+      <div class="order-success" id="successView" style="display:none;">
+        <div class="check">&#10003;</div>
+        <h3>Order sent</h3>
+        <p>We've received your order and will confirm on WhatsApp shortly.</p>
+      </div>
+    </div>
+    <div class="drawer-footer">
+      <div class="cart-total">
+        <span>Total</span>
+        <span id="checkoutTotal">$0.00</span>
+      </div>
+      <button class="checkout-btn" id="confirmOrderBtn">Confirm order</button>
+    </div>
+  </div>
+
+</aside>
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, getDocs, addDoc, doc, runTransaction, serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  // ---------------------------------------------------------------
+  // 1. FIREBASE CONFIG — replace with your project's config object
+  //    (Firebase console -> Project settings -> Your apps -> SDK setup)
+  // ---------------------------------------------------------------
+  const firebaseConfig = {
+    apiKey: "AIzaSyBe8QREUGYvEjgeHnF9fKUyRE0ig1yi7L0",
+    authDomain: "random-shi-4fda6.firebaseapp.com",
+    projectId: "random-shi-4fda6",
+    storageBucket: "random-shi-4fda6.firebasestorage.app",
+    messagingSenderId: "424758365220",
+    appId: "1:424758365220:web:bf383053e7df394c2cdcb1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // WhatsApp number orders should be forwarded to (shop owner)
+  const SHOP_WHATSAPP_NUMBER = "263771234567"; // replace with real number, no + or leading 0
+
+  // ---------------------------------------------------------------
+  // 2. STATE
+  // ---------------------------------------------------------------
+  let products = [];
+  let cart = {}; // { productId: qty }
+
+  // ---------------------------------------------------------------
+  // 3. LOAD PRODUCTS FROM FIRESTORE
+  //    Expected collection: "products"
+  //    Each doc: { name, price, stock, imageUrl (optional), rating (optional), ratingCount (optional) }
+  // ---------------------------------------------------------------
+  async function loadProducts() {
+    const grid = document.getElementById('productGrid');
+    try {
+      const snap = await getDocs(collection(db, "products"));
+      products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+      console.error("Failed to load products:", err);
+      grid.innerHTML = `<div class="empty-state">Couldn't load products. Check your connection and try again.</div>`;
+      return;
+    }
+
+    if (products.length === 0) {
+      grid.innerHTML = `<div class="empty-state">No products yet. Add some in the Firestore "products" collection.</div>`;
+      return;
+    }
+
+    renderProducts();
+  }
+
+  function renderStars(rating = 0) {
+    const full = Math.round(rating);
+    let out = '';
+    for (let i = 0; i < 5; i++) {
+      out += i < full ? '&#9733;' : '<span class="empty">&#9733;</span>';
+    }
+    return out;
+  }
+
+  function renderProducts() {
+    const grid = document.getElementById('productGrid');
+    grid.innerHTML = products.map(p => {
+      const outOfStock = (p.stock ?? 0) <= 0;
+      const lowStock = !outOfStock && p.stock <= 3;
+      return `
+        <div class="card">
+          <div class="card-img">${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;">` : (p.name || 'No image')}</div>
+          <div class="card-body">
+            <div class="card-name">${p.name}</div>
+            <div class="stars" aria-label="Rating ${p.rating || 0} out of 5">${renderStars(p.rating)} ${p.ratingCount ? `<span style="color:var(--text-muted)">(${p.ratingCount})</span>` : ''}</div>
+            <div class="stock-tag ${lowStock ? 'low' : ''}">${outOfStock ? 'Out of stock' : lowStock ? `Only ${p.stock} left` : 'In stock'}</div>
+            <div class="card-meta">
+              <span class="price">$${Number(p.price).toFixed(2)}</span>
+              <button class="add-btn" data-id="${p.id}" ${outOfStock ? 'disabled' : ''}>${outOfStock ? 'Sold out' : 'Add'}</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.add-btn').forEach(btn => {
+      btn.addEventListener('click', () => addToCart(btn.dataset.id));
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // 4. CART LOGIC
+  // ---------------------------------------------------------------
+  function addToCart(productId) {
+    cart[productId] = (cart[productId] || 0) + 1;
+    updateCartUI();
+    showToast('Added to cart');
+  }
+
+  function changeQty(productId, delta) {
+    cart[productId] = (cart[productId] || 0) + delta;
+    if (cart[productId] <= 0) delete cart[productId];
+    updateCartUI();
+  }
+
+  function cartCount() {
+    return Object.values(cart).reduce((a, b) => a + b, 0);
+  }
+
+  function cartTotal() {
+    return Object.entries(cart).reduce((sum, [id, qty]) => {
+      const p = products.find(p => p.id === id);
+      return sum + (p ? p.price * qty : 0);
+    }, 0);
+  }
+
+  function updateCartUI() {
+    const countEl = document.getElementById('cartCount');
+    const count = cartCount();
+    countEl.style.display = count > 0 ? 'flex' : 'none';
+    countEl.textContent = count;
+
+    const itemsEl = document.getElementById('cartItems');
+    const entries = Object.entries(cart);
+
+    if (entries.length === 0) {
+      itemsEl.innerHTML = `<div class="empty-state">Your cart is empty. Add something from the shop.</div>`;
+    } else {
+      itemsEl.innerHTML = entries.map(([id, qty]) => {
+        const p = products.find(p => p.id === id);
+        if (!p) return '';
+        return `
+          <div class="line-item">
+            <div class="thumb"></div>
+            <div class="info">
+              <div class="name">${p.name}</div>
+              <div class="unit">$${p.price.toFixed(2)} each</div>
+            </div>
+            <div class="qty-control">
+              <button data-id="${id}" data-delta="-1" aria-label="Decrease quantity">&minus;</button>
+              <span>${qty}</span>
+              <button data-id="${id}" data-delta="1" aria-label="Increase quantity">+</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      itemsEl.querySelectorAll('.qty-control button').forEach(btn => {
+        btn.addEventListener('click', () => changeQty(btn.dataset.id, Number(btn.dataset.delta)));
+      });
+    }
+
+    const total = cartTotal();
+    document.getElementById('cartTotal').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('checkoutTotal').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('checkoutBtn').disabled = entries.length === 0;
+  }
+
+  // ---------------------------------------------------------------
+  // 5. DRAWER + VIEW SWITCHING
+  // ---------------------------------------------------------------
+  const drawer = document.getElementById('drawer');
+  const overlay = document.getElementById('overlay');
+
+  function openDrawer() {
+    drawer.classList.add('open');
+    overlay.classList.add('open');
+  }
+  function closeDrawer() {
+    drawer.classList.remove('open');
+    overlay.classList.remove('open');
+    showCartView();
+  }
+
+  function showCartView() {
+    document.getElementById('cartView').style.display = 'block';
+    document.getElementById('checkoutView').style.display = 'none';
+  }
+  function showCheckoutView() {
+    document.getElementById('cartView').style.display = 'none';
+    document.getElementById('checkoutView').style.display = 'flex';
+    document.getElementById('formView').style.display = 'block';
+    document.getElementById('successView').style.display = 'none';
+  }
+
+  document.getElementById('cartBtn').addEventListener('click', openDrawer);
+  document.getElementById('closeDrawer').addEventListener('click', closeDrawer);
+  document.getElementById('closeCheckout').addEventListener('click', closeDrawer);
+  document.getElementById('overlay').addEventListener('click', closeDrawer);
+  document.getElementById('checkoutBtn').addEventListener('click', showCheckoutView);
+  document.getElementById('backToCart').addEventListener('click', showCartView);
+
+  // ---------------------------------------------------------------
+  // 6. IDENTITY (lightweight — name + WhatsApp number, no password)
+  //    Saved to localStorage so it persists across visits on this device.
+  // ---------------------------------------------------------------
+  function getSavedIdentity() {
+    const raw = localStorage.getItem('customerIdentity');
+    return raw ? JSON.parse(raw) : null;
+  }
+  function saveIdentity(name, phone) {
+    localStorage.setItem('customerIdentity', JSON.stringify({ name, phone }));
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = getSavedIdentity();
+    if (saved) {
+      document.getElementById('custName').value = saved.name;
+      document.getElementById('custPhone').value = saved.phone;
+    }
+  });
+
+  // ---------------------------------------------------------------
+  // 7. ORDER SUBMISSION
+  //    Writes to "orders" collection and decrements stock via a transaction.
+  //    Also opens WhatsApp with a prefilled message as a backup channel,
+  //    since WhatsApp is the primary way this shop confirms pickups.
+  // ---------------------------------------------------------------
+  async function submitOrder() {
+    const name = document.getElementById('custName').value.trim();
+    const phone = document.getElementById('custPhone').value.trim();
+    const note = document.getElementById('custNote').value.trim();
+    const confirmBtn = document.getElementById('confirmOrderBtn');
+
+    if (!name || !phone) {
+      showToast('Please add your name and WhatsApp number');
+      return;
+    }
+
+    const items = Object.entries(cart).map(([id, qty]) => {
+      const p = products.find(p => p.id === id);
+      return { productId: id, name: p.name, price: p.price, qty };
+    });
+
+    confirmBtn.disabled = true;
+    confirmBtn.textContent = 'Placing order...';
+
+    try {
+      // Decrement stock safely for each item
+      for (const item of items) {
+        const productRef = doc(db, "products", item.productId);
+        await runTransaction(db, async (tx) => {
+          const snap = await tx.get(productRef);
+          const currentStock = snap.data().stock ?? 0;
+          tx.update(productRef, { stock: Math.max(currentStock - item.qty, 0) });
+        });
+      }
+
+      await addDoc(collection(db, "orders"), {
+        customerName: name,
+        customerPhone: phone,
+        note,
+        items,
+        total: cartTotal(),
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+
+      saveIdentity(name, phone);
+
+      // Open WhatsApp with a prefilled summary as a backup confirmation channel
+      const summary = items.map(i => `${i.qty}x ${i.name}`).join(', ');
+      const waMessage = encodeURIComponent(
+        `Hi, I just placed an order: ${summary}. Total: $${cartTotal().toFixed(2)}. Name: ${name}.`
+      );
+      window.open(`https://wa.me/${SHOP_WHATSAPP_NUMBER}?text=${waMessage}`, '_blank');
+
+      document.getElementById('formView').style.display = 'none';
+      document.getElementById('successView').style.display = 'block';
+
+      cart = {};
+      updateCartUI();
+      await loadProducts(); // refresh stock counts
+
+      setTimeout(closeDrawer, 3500);
+
+    } catch (err) {
+      console.error("Order failed:", err);
+      showToast("Couldn't place order — check your connection and try again");
+    } finally {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Confirm order';
+    }
+  }
+
+  document.getElementById('confirmOrderBtn').addEventListener('click', submitOrder);
+
+  // ---------------------------------------------------------------
+  // 8. TOAST
+  // ---------------------------------------------------------------
+  let toastTimer;
+  function showToast(msg) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
+  // ---------------------------------------------------------------
+  // INIT
+  // ---------------------------------------------------------------
+  loadProducts();
+</script>
+
+</body>
+</html>
